@@ -2,8 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
+.ant-menu-item-selected{
+    background-color: rgb(141, 120, 2)  !important;
+}
 
-body {
-    font-family: 'Poppins', sans-serif;
-  }
-  
+.ant-btn-color-primary{
+    background-color: rgb(141, 120, 2) !important;
+}
+.ant-spin-dot-holder{
+color:rgb(141, 120, 2)  !important ;
+}
