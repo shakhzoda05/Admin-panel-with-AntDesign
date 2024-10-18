@@ -1,11 +1,12 @@
 import { LineOutlined, MedicineBoxOutlined } from '@ant-design/icons'
-import { Button, Input, Popover } from 'antd'
+import { Button, Input, Modal, Popover } from 'antd'
 import React, { useEffect, useState } from 'react'
 import CustomSelect from '../components/CustomSelect'
 import CustomTable from "../components/CustomTable"
 import { DeleteOutlined, EditOutlined, MoreOutlined } from '@ant-design/icons';
 import { useAxios } from '../hooks/useAxios'
 import { useNavigate } from 'react-router-dom'
+import toast, { Toaster } from 'react-hot-toast'
 
 function Organization() {
     const [refresh, setRefresh] = useState(false)
@@ -13,6 +14,9 @@ function Organization() {
 
     const [data, setData] = useState()
     const [isLoading, setIsLoading] = useState(false)
+
+    const [deleteModal, setDeleteModal] = useState(false)
+    const [deleteId, setDeleteID] = useState(null)
 
     const [regionId, setRegionId] = useState("")
 
@@ -73,7 +77,6 @@ function Organization() {
 
         },
     ]
-    console.log(regionId);
 
     // search part start
     function handleSearchBtn(e) {
@@ -94,6 +97,24 @@ function Organization() {
     }
     // search part end
 
+
+    // delete part start
+    function handleDeleteBTn(id) {
+        setDeleteModal(true)
+        setDeleteID(id)
+
+    }
+
+    function handleOkDeleteModal() {
+        useAxios().delete(`/organization/${deleteId}`).then(res => {
+            setDeleteModal(false)
+            setIsLoading(true)
+            setTimeout(() => {
+                toast.success("Tashkilot ochirildi !!!")
+                setRefresh(!refresh)
+            }, 800);
+        })
+    }
 
     useEffect(() => {
         useAxios().get(`/organization?regionId=${regionId}`).then(res => {
@@ -117,8 +138,8 @@ function Organization() {
                         break;
                 }
                 item.action = <div className='flex items-center gap-10'>
-                    <DeleteOutlined className='scale-[1.3] cursor-pointer hover:scale-[1.5] duration-300' />
-                    <EditOutlined className='scale-[1.3] cursor-pointer hover:scale-[1.5] duration-300' />
+                    <DeleteOutlined onClick={() => handleDeleteBTn(item.id)} className='scale-[1.3] cursor-pointer hover:scale-[1.5] duration-300' />
+                    <EditOutlined onClick={() => navigate(`${item.id}/edit`)} className='scale-[1.3] cursor-pointer hover:scale-[1.5] duration-300' />
                     <MoreOutlined onClick={() => navigate(item.id)} className='scale-[1.3] cursor-pointer hover:scale-[1.5] duration-300 rotate-[90deg]' />
                 </div>
                 return item
@@ -126,8 +147,22 @@ function Organization() {
         })
 
     }, [refresh, regionId])
+
+
+    const [tableParams, setTableParams] = useState({
+        pagination: {
+            current: 1,
+            pageSize: 5,
+        },
+    });
+
+    function handleTableChange(page) {
+        setTableParams(page)
+
+    }
     return (
         <div className='p-5'>
+            <Toaster position="top-center" reverseOrder={false} />
             <div className="flex items-center justify-between">
                 <div className="">
                     <h2 className='font-bold text-[25px]'>Tashkilotlar</h2>
@@ -141,8 +176,10 @@ function Organization() {
             </div>
 
             <div className="mt-5">
-                <CustomTable columns={columns} data={data} isLoading={isLoading} />
+                <CustomTable tableParams={tableParams} onChange={handleTableChange} columns={columns} data={data} isLoading={isLoading} />
             </div>
+
+            <Modal title={"Tashkilotni o'chirmoqchimisiz ?"} open={deleteModal} onOk={handleOkDeleteModal} onCancel={() => setDeleteModal(false)}></Modal>
         </div>
     )
 }
